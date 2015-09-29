@@ -49,13 +49,13 @@
     var url_temp_parser = document.createElement('a')
     url_temp_parser.href = window.location.href;
     var url_temp_path = url_temp_parser.pathname;
-    var urlprefix = url_temp_path.substring(0, url_temp_path.indexOf('/web'));
+    var subroot = url_temp_path.substring(0, url_temp_path.indexOf('/web'));
 
     var odoo = window.odoo = {
         testing: typeof QUnit === "object",
         debug: debug,
         remaining_jobs: jobs,
-        urlprefix: urlprefix,
+        subroot: subroot,
 
         __DEBUG__: {
             get_dependencies: function (name, transitive) {

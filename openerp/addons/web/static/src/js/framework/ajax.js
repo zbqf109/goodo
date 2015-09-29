@@ -31,7 +31,7 @@ function genericJsonRpc (fct_name, params, fct) {
 
 function jsonRpc(url, fct_name, params, settings) {
     return genericJsonRpc(fct_name, params, function(data) {
-        return $.ajax(odoo.urlprefix+url, _.extend({}, settings, {
+        return $.ajax(odoo.subroot+url, _.extend({}, settings, {
             url: url,
             dataType: 'json',
             type: 'POST',
@@ -141,7 +141,7 @@ function loadCSS(url) {
 
 function loadJS(url) {
     var def = $.Deferred();
-    //url = odoo.urlprefix + url;
+    //url = odoo.subroot + url;
     if ($('script[src="' + url + '"]').length) {
         def.resolve();
     } else {
@@ -330,7 +330,7 @@ var loadXML = (function () {
 
     var load = function loadXML(url, qweb) {
         if (url) {
-            url = odoo.urlprefix + url;
+            url = odoo.subroot + url;
             urls.push(url);
             qwebs.push(qweb);
         }

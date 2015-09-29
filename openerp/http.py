@@ -139,9 +139,9 @@ def dispatch_rpc(service_name, method, params):
         raise
 
 def local_redirect(path, query=None, keep_hash=False, forward_debug=True, code=303):
-    urlprefix = openerp.tools.config.get('urlprefix')
-    if urlprefix:
-        url  = '{}{}'.format(urlprefix, path)
+    subroot = openerp.tools.config.get('subroot')
+    if subroot:
+        url  = '{}{}'.format(subroot, path)
     else:
         url = path
     print 'redirect to %s' % url
@@ -849,7 +849,7 @@ def routing_map(modules, nodb_only, converters=None):
         return result
 
     uniq = lambda it: collections.OrderedDict((id(x), x) for x in it).values()
-    urlprefix = openerp.tools.config.get('urlprefix')
+    subroot = openerp.tools.config.get('subroot')
 
     for module in modules:
         if module not in controllers_per_module:
@@ -886,7 +886,7 @@ def routing_map(modules, nodb_only, converters=None):
                             xtra_keys = 'defaults subdomain build_only strict_slashes redirect_to alias host'.split()
                             kw = {k: routing[k] for k in xtra_keys if k in routing}
 
-                            routing_map.add(openerp.fake_werkzeug.routing.Rule(url, endpoint=endpoint, methods=routing['methods'], prefix=urlprefix, **kw))
+                            routing_map.add(openerp.fake_werkzeug.routing.Rule(url, endpoint=endpoint, methods=routing['methods'], prefix=subroot, **kw))
     return routing_map
 
 #----------------------------------------------------------
@@ -1368,7 +1368,7 @@ class Root(object):
         controllers and configure them.  """
         # TODO should we move this to ir.http so that only configured modules are served ?
         statics = {}
-        urlprefix = openerp.tools.config.get('urlprefix')
+        subroot = openerp.tools.config.get('subroot')
 
         for addons_path in openerp.modules.module.ad_paths:
             for module in sorted(os.listdir(str(addons_path))):
@@ -1385,7 +1385,7 @@ class Root(object):
                             m = None
                         addons_module[module] = m
                         addons_manifest[module] = manifest
-                        statics['%s/%s/static' % (urlprefix, module)] = path_static
+                        statics['%s/%s/static' % (subroot, module)] = path_static
 
         if statics:
             _logger.info("HTTP Configuring static files")
@@ -1518,10 +1518,10 @@ class Root(object):
                         # - the database version doesnt match the server version
                         # Log the user out and fall back to nodb
                         request.session.logout()
-                        urlprefix = openerp.tools.config.get('urlprefix')
+                        subroot = openerp.tools.config.get('subroot')
                         # If requesting /web this will loop
-                        if request.httprequest.path == urlprefix + '/web':
-                            result = werkzeug.utils.redirect(urlprefix + '/web/database/selector')
+                        if request.httprequest.path == subroot + '/web':
+                            result = werkzeug.utils.redirect(subroot + '/web/database/selector')
                         else:
                             result = _dispatch_nodb()
                     else:

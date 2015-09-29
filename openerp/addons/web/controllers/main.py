@@ -523,9 +523,9 @@ class Home(http.Controller):
     def web_client(self, s_action=None, **kw):
         ensure_db()
         if not request.session.uid:
-            urlprefix = openerp.tools.config.get('urlprefix')
-            if urlprefix:
-                redirect_url = urlprefix + '/web/login'
+            subroot = openerp.tools.config.get('subroot')
+            if subroot:
+                redirect_url = subroot + '/web/login'
             else:
                 redirect_url = '/web/login'
             return werkzeug.utils.redirect(redirect_url, 303)
@@ -563,9 +563,9 @@ class Home(http.Controller):
             if uid is not False:
                 request.params['login_success'] = True
                 if not redirect:
-                    urlprefix = openerp.tools.config.get('urlprefix')
-                    if urlprefix:
-                        redirect = urlprefix + '/web'
+                    subroot = openerp.tools.config.get('subroot')
+                    if subroot:
+                        redirect = subroot + '/web'
                     else:
                         redirect = '/web'
                 return http.redirect_with_hash(redirect)
@@ -703,8 +703,8 @@ class Proxy(http.Controller):
 
         base_url = request.httprequest.base_url
         # TODO this fix should be in js
-        urlprefix = openerp.tools.config.get('urlprefix')
-        return Client(request.httprequest.app, BaseResponse).get(urlprefix + path, base_url=base_url).data
+        subroot = openerp.tools.config.get('subroot')
+        return Client(request.httprequest.app, BaseResponse).get(subroot + path, base_url=base_url).data
 
     @http.route('/web/proxy/post/<path:path>', type='http', auth='user', methods=['GET'])
     def post(self, path):

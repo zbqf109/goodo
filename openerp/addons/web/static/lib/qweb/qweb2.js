@@ -101,7 +101,7 @@ var QWeb2 = {
                 || (tag === "img" && name === "src")
             ) {
                 if (value.startsWith("/"))
-                    value = odoo.urlprefix + value;
+                    value = odoo.subroot + value;
             }
 
             return ' ' + name + '="' + this.html_escape(value, true) + '"';

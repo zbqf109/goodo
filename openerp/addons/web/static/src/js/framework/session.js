@@ -45,7 +45,7 @@ var Session = core.Class.extend(mixins.EventDispatcherMixin, {
     },
     setup: function(origin, options) {
         // must be able to customize server
-        var window_origin = location.protocol + "//" + location.host + odoo.urlprefix;
+        var window_origin = location.protocol + "//" + location.host + odoo.subroot;
         origin = origin ? origin.replace( /\/+$/, '') : window_origin;
         if (!_.isUndefined(this.origin) && this.origin !== origin)
             throw new Error('Session already bound to ' + this.origin);

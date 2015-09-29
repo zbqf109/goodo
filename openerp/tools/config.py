@@ -253,7 +253,7 @@ class configmanager(object):
                          help="Use the unaccent function provided by the database when available.")
         group.add_option("--geoip-db", dest="geoip_database", my_default='/usr/share/GeoIP/GeoLiteCity.dat',
                          help="Absolute path to the GeoIP database file.")
-        group.add_option("--url-prefix", dest="urlprefix", my_default="", help="All path will be prefixed by this string.")
+        group.add_option("--subroot", dest="subroot", my_default="", help="All path will be prefixed by this string.")
         parser.add_option_group(group)
 
         if os.name == 'posix':
@@ -390,7 +390,7 @@ class configmanager(object):
             'list_db', 'proxy_mode',
             'test_file', 'test_enable', 'test_commit', 'test_report_directory',
             'osv_memory_count_limit', 'osv_memory_age_limit', 'max_cron_threads', 'unaccent',
-            'data_dir', 'urlprefix',
+            'data_dir', 'subroot',
         ]
 
         posix_keys = [

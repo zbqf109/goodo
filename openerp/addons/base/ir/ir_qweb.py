@@ -343,16 +343,16 @@ class QWeb(orm.AbstractModel):
             return "<%s%s/>" % (name, generated_attributes)
 
     def render_attribute(self, element, name, value, qwebcontext):
-        urlprefix = openerp.tools.config.get('urlprefix')
+        subroot = openerp.tools.config.get('subroot')
         # sometimes a link to http://www.odoo.com/
-        if urlprefix:
+        if subroot:
             if (   (element.tag == 'a'      and name == 'href') # href
                 or (element.tag == 'link'   and name == 'href')
                 or (element.tag == 'form'   and name == 'action')
                 or (element.tag == 'img'    and name == 'src')
                 or (element.tag == 'script' and name == 'src')):
                 if not (value.startswith('http://') or value.startswith('https://')):
-                    value = urlprefix + value
+                    value = subroot + value
                     #print '[render_attribute] fix {}.{}={}'.format(element.tag, name, value)
         return _build_attribute(name, value)
 
@@ -373,15 +373,15 @@ class QWeb(orm.AbstractModel):
             result = self.eval_object(attribute_value, qwebcontext)
             if isinstance(result, collections.Mapping):
                 return result.iteritems()
-        # urlprefix = openerp.tools.config.get('urlprefix')
+        # subroot = openerp.tools.config.get('subroot')
         # sometimes a link to http://www.odoo.com/
-        #if urlprefix and not (result[0].startswith('http://') or result[0].startswith('https://')):
+        #if subroot and not (result[0].startswith('http://') or result[0].startswith('https://')):
         #    if (   (element.tag == 'a'      and result[0] == 'href') # href
         #        or (element.tag == 'link'   and result[0] == 'href')
         #        or (element.tag == 'form'   and result[0] == 'action')
         #        or (element.tag == 'img'    and result[0] == 'src')
         #        or (element.tag == 'script' and result[0] == 'src')):
-        #        result = (result[0], urlprefix + result[1])
+        #        result = (result[0], subroot + result[1])
         #        print '[render_att_att] fix {}.{}={}'.format(element.tag, result[0], result[1])
         # assume tuple
         return [result]
@@ -1200,12 +1200,12 @@ class AssetsBundle(object):
                     response.append(jscript.to_html())
         else:
             url_for = self.context.get('url_for', lambda url: url)
-            urlprefix = openerp.tools.config.get('urlprefix')
+            subroot = openerp.tools.config.get('subroot')
             if css and self.stylesheets:
                 for attachment in self.css():
-                    response.append('<link href="%s" rel="stylesheet"/>' % url_for(urlprefix + attachment.url))
+                    response.append('<link href="%s" rel="stylesheet"/>' % url_for(subroot + attachment.url))
             if js and self.javascripts:
-                response.append('<script %s type="text/javascript" src="%s"></script>' % (async and 'async="async"' or '', url_for(urlprefix + self.js().url)))
+                response.append('<script %s type="text/javascript" src="%s"></script>' % (async and 'async="async"' or '', url_for(subroot + self.js().url)))
         response.extend(self.remains)
         return sep + sep.join(response)
 
@@ -1411,9 +1411,9 @@ class WebAsset(object):
 
     def stat(self):
         if not (self.inline or self._filename or self._ir_attach):
-            urlprefix = openerp.tools.config.get('urlprefix')
-            # strip out urlprefix
-            _url = self.url[len(urlprefix):]
+            subroot = openerp.tools.config.get('subroot')
+            # strip out subroot
+            _url = self.url[len(subroot):]
             path = filter(None, _url.split('/'))
             self._filename = get_resource_path(*path)
             if self._filename:
@@ -1421,9 +1421,9 @@ class WebAsset(object):
             try:
                 # Test url against ir.attachments
                 fields = ['__last_update', 'datas', 'mimetype']
-                # strip out `urlprefix`
+                # strip out `subroot`
 
-                _url = self.url[len(urlprefix):]
+                _url = self.url[len(subroot):]
                 domain = [('type', '=', 'binary'), ('url', '=', _url)]
                 ira = self.registry['ir.attachment']
                 attach = ira.search_read(self.cr, openerp.SUPERUSER_ID, domain, fields, context=self.context)
