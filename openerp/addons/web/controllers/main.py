@@ -524,10 +524,7 @@ class Home(http.Controller):
         ensure_db()
         if not request.session.uid:
             subroot = openerp.tools.config.get('subroot')
-            if subroot:
-                redirect_url = subroot + '/web/login'
-            else:
-                redirect_url = '/web/login'
+            redirect_url = subroot + '/web/login'
             return werkzeug.utils.redirect(redirect_url, 303)
         if kw.get('redirect'):
             return werkzeug.utils.redirect(kw.get('redirect'), 303)

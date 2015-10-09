@@ -9,6 +9,27 @@ Odoo depends heavily on a python WSGI module \-\- `werkzeug`. At its homepage it
 At the first glance it feels good but odoo plays too much on it.
 
 ## Website and static resources
-Odoo tries to hold everything in its hand. There may be many considerations such as being aware of `QWeb` framework and ORM objects, but absolutely this feature slows down accessing the static resources like style sheets, scripts and images. And, since the handler of a path is located at runtime and what is even more serious it is neither cached nor optimized you may waste a little time getting or posting something *every time*. When you type a decorator `@http.route` on a method, you actually know exactly how this path is handled, but odoo still bothers to look it up through a rule map. The `@http.route` gives a much simple way to make a path handler while gives up execution efficiency.
+Odoo tries to hold everything in its hand. There may be many considerations such as being aware of `QWeb` framework and ORM objects, but absolutely this feature slows down accessing the static resources like style sheets, scripts and images. And, since the handler of a path is located at runtime and what is even more worse is that it is neither cached nor optimized and you may waste a little more time when getting or posting something *every time*. When you type a decorator `@http.route` on a method, you actually know exactly how this path is handled, but odoo still bothers to look it up through a rule map. The `@http.route` gives a much simple way to make a path handler while gives up execution efficiency.
 
-So `goodo` should work out a better way to handle `@http.route` rules and will end up for temporary.
+Another consideration may be that some requests are bound to a database while others are not. You cannot dispatch a request whose handler needs a database context before the database connections are set up. Odoo remedies this situation by a introducing a variable called `server_wide_modules` which is a Python `list` technically. It consists of a series of modules, each should include some kinds of classes or methods decorated by `@http.route`. Odoo will dispatch requests to these modules only if no database is connected and to other modules if any database connection already exists.   
+
+So `goodo` should work out a better way to handle `@http.route` rules.
+
+## Goodo's improvement
+
+Restrictions are that you must make odoo the root directory of your website. Goodo makes a slightly revamp so that:
+
+* it can be deployed under any sub-directories, and
+* you can deploy odoo behind any WSGI-compatible services to take advantage of their features.
+
+## Ways go there
+
+Goodo adds a new configuration named `subroot` under which the original `odoo` is kept, but there is no extra effort taken by developers. For example, you still write `@http.route('/path/to/your/addon')` exactly the same as ever before, and the actual `route` function in `http` module is adjusted so that it can build a correct url pattern by add a prefix to it.
+
+For the frontend, a new member `subroot` which is auto-detected through `location` is added to `odoo` object. Before a `json`/`xml`/`url` request is sent, the url is rebuilt with a prefix of `odoo.subroot` so that it refers the correct resource.  
+
+## Known issues
+
+* Background images missing.
+
+    In some `css` files, there are rules like `backgroud:url('/web/blabla')`. Since the request for that resource of `url` specified is launched by the browser and there seems no way to hook these requests, some images need by an HTML element may be lost (you get a *404 Not Found* response for that requests each). 
