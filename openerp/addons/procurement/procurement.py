@@ -199,7 +199,7 @@ class procurement_order(osv.osv):
                         self.message_post(cr, uid, [procurement.id], body=_('No rule matching this procurement'), context=context)
                         self.write(cr, uid, [procurement.id], {'state': 'exception'}, context=context)
                     if autocommit:
-                        cr.commit()
+                        cr.connection.commit()
                 except OperationalError:
                     if autocommit:
                         cr.rollback()
@@ -216,7 +216,7 @@ class procurement_order(osv.osv):
                 if result:
                     done_ids.append(procurement.id)
                 if autocommit:
-                    cr.commit()
+                    cr.connection.commit()
             except OperationalError:
                 if autocommit:
                     cr.rollback()
@@ -305,7 +305,7 @@ class procurement_order(osv.osv):
                     prev_ids = ids
                 self.run(cr, SUPERUSER_ID, ids, autocommit=use_new_cursor, context=context)
                 if use_new_cursor:
-                    cr.commit()
+                    cr.connection.commit()
 
             # Check if running procurements are done
             offset = 0
@@ -321,7 +321,7 @@ class procurement_order(osv.osv):
                     prev_ids = ids
                 self.check(cr, SUPERUSER_ID, ids, autocommit=use_new_cursor, context=context)
                 if use_new_cursor:
-                    cr.commit()
+                    cr.connection.commit()
 
         finally:
             if use_new_cursor:

@@ -259,16 +259,16 @@ class ir_translation(osv.osv):
         # cr.execute('CREATE INDEX ir_translation_src_hash_idx ON ir_translation USING hash (src)')
         if set(indexes) & set(['ir_translation_ltns', 'ir_translation_lts', 'ir_translation_src_hash_idx']):
             cr.execute('DROP INDEX IF EXISTS ir_translation_ltns, ir_translation_lts, ir_translation_src_hash_idx')
-            cr.commit()
+            cr.connection.commit()
 
         # Add separate md5 index on src (no size limit on values, and good performance).
         if 'ir_translation_src_md5' not in indexes:
             cr.execute('CREATE INDEX ir_translation_src_md5 ON ir_translation (md5(src))')
-            cr.commit()
+            cr.connection.commit()
 
         if 'ir_translation_ltn' not in indexes:
             cr.execute('CREATE INDEX ir_translation_ltn ON ir_translation (name, lang, type)')
-            cr.commit()
+            cr.connection.commit()
 
     def _check_selection_field_value(self, cr, uid, field, value, context=None):
         if field == 'lang':

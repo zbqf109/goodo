@@ -68,7 +68,7 @@ def exp_render_report(db, uid, object, ids, datas=None, context=None):
             tb = sys.exc_info()
             self_reports[id]['exception'] = openerp.exceptions.DeferredException(tools.exception_to_unicode(exception), tb)
         self_reports[id]['state'] = True
-    cr.commit()
+    cr.connection.commit()
     cr.close()
 
     return _check_report(id)
@@ -106,7 +106,7 @@ def exp_report(db, uid, object, ids, datas=None, context=None):
                     tb = sys.exc_info()
                     self_reports[id]['exception'] = openerp.exceptions.DeferredException(tools.exception_to_unicode(exception), tb)
                 self_reports[id]['state'] = True
-            cr.commit()
+            cr.connection.commit()
             cr.close()
         return True
 

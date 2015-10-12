@@ -125,9 +125,15 @@ class ImDispatch(object):
         """ Dispatch postgres notifications to the relevant polling threads/greenlets """
         _logger.info("Bus.loop listen imbus on db postgres")
         with openerp.sql_db.db_connect('postgres').cursor() as cr:
-            conn = cr._cnx
-            cr.execute("listen imbus")
-            cr.commit();
+            try:
+                conn = cr._cnx
+                cr.execute("listen imbus")
+                cr.commit()
+            except AttributeError:
+                cr.execute("listen imbus")
+                conn = cr.connection
+                conn.commit()
+
             while True:
                 if select.select([conn], [], [], TIMEOUT) == ([], [], []):
                     pass

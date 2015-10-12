@@ -305,7 +305,7 @@ class ir_attachment(osv.osv):
         cr.execute('SELECT indexname FROM pg_indexes WHERE indexname = %s', ('ir_attachment_res_idx',))
         if not cr.fetchone():
             cr.execute('CREATE INDEX ir_attachment_res_idx ON ir_attachment (res_model, res_id)')
-            cr.commit()
+            cr.connection.commit()
 
     def check(self, cr, uid, ids, mode, context=None, values=None):
         """Restricts the access to an ir.attachment, according to referred model

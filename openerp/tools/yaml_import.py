@@ -334,7 +334,7 @@ class YamlInterpreter(object):
                     module, record_dict, record_id, noupdate=self.isnoupdate(record), mode=self.mode, context=context)
             self.id_map[record.id] = int(id)
             if config.get('import_partial'):
-                self.cr.commit()
+                self.cr.connection.commit()
 
     def _create_record(self, model, fields, view_info=None, parent={}, default=True, context=None):
         """This function processes the !record tag in yalm files. It simulates the record creation through an xml

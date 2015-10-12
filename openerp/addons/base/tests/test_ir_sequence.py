@@ -28,7 +28,7 @@ def drop_sequence(code):
     s = registry('ir.sequence')
     ids = s.search(cr, ADMIN_USER_ID, [('code', '=', code)])
     s.unlink(cr, ADMIN_USER_ID, ids)
-    cr.commit()
+    cr.connection.commit()
     cr.close()
 
 class test_ir_sequence_standard(unittest2.TestCase):
@@ -40,7 +40,7 @@ class test_ir_sequence_standard(unittest2.TestCase):
         d = dict(code='test_sequence_type', name='Test sequence')
         c = registry('ir.sequence').create(cr, ADMIN_USER_ID, d, {})
         assert c
-        cr.commit()
+        cr.connection.commit()
         cr.close()
 
     def test_ir_sequence_search(self):
@@ -48,7 +48,7 @@ class test_ir_sequence_standard(unittest2.TestCase):
         cr = cursor()
         ids = registry('ir.sequence').search(cr, ADMIN_USER_ID, [], {})
         assert ids
-        cr.commit()
+        cr.connection.commit()
         cr.close()
 
     def test_ir_sequence_draw(self):
@@ -56,7 +56,7 @@ class test_ir_sequence_standard(unittest2.TestCase):
         cr = cursor()
         n = registry('ir.sequence').next_by_code(cr, ADMIN_USER_ID, 'test_sequence_type', {})
         assert n
-        cr.commit()
+        cr.connection.commit()
         cr.close()
 
     def test_ir_sequence_draw_twice(self):
@@ -86,7 +86,7 @@ class test_ir_sequence_no_gap(unittest2.TestCase):
             implementation='no_gap')
         c = registry('ir.sequence').create(cr, ADMIN_USER_ID, d, {})
         assert c
-        cr.commit()
+        cr.connection.commit()
         cr.close()
 
     def test_ir_sequence_draw_no_gap(self):
@@ -94,7 +94,7 @@ class test_ir_sequence_no_gap(unittest2.TestCase):
         cr = cursor()
         n = registry('ir.sequence').next_by_code(cr, ADMIN_USER_ID, 'test_sequence_type_2', {})
         assert n
-        cr.commit()
+        cr.connection.commit()
         cr.close()
 
     def test_ir_sequence_draw_twice_no_gap(self):
@@ -129,7 +129,7 @@ class test_ir_sequence_change_implementation(unittest2.TestCase):
             implementation='no_gap')
         c = registry('ir.sequence').create(cr, ADMIN_USER_ID, d, {})
         assert c
-        cr.commit()
+        cr.connection.commit()
         cr.close()
 
     def test_ir_sequence_2_write(self):
@@ -140,7 +140,7 @@ class test_ir_sequence_change_implementation(unittest2.TestCase):
             {'implementation': 'standard'}, {})
         registry('ir.sequence').write(cr, ADMIN_USER_ID, ids,
             {'implementation': 'no_gap'}, {})
-        cr.commit()
+        cr.connection.commit()
         cr.close()
 
     def test_ir_sequence_3_unlink(self):
@@ -148,7 +148,7 @@ class test_ir_sequence_change_implementation(unittest2.TestCase):
         ids = registry('ir.sequence').search(cr, ADMIN_USER_ID,
             [('code', 'in', ['test_sequence_type_3', 'test_sequence_type_4'])], {})
         registry('ir.sequence').unlink(cr, ADMIN_USER_ID, ids, {})
-        cr.commit()
+        cr.connection.commit()
         cr.close()
 
     @classmethod
@@ -165,13 +165,13 @@ class test_ir_sequence_generate(unittest2.TestCase):
         d = dict(code='test_sequence_type_5', name='Test sequence')
         c = registry('ir.sequence').create(cr, ADMIN_USER_ID, d, {})
         assert c
-        cr.commit()
+        cr.connection.commit()
         cr.close()
 
         cr = cursor()
         f = lambda *a: registry('ir.sequence').next_by_code(cr, ADMIN_USER_ID, 'test_sequence_type_5', {})
         assert all(str(x) == f() for x in xrange(1,10))
-        cr.commit()
+        cr.connection.commit()
         cr.close()
 
     def test_ir_sequence_create_no_gap(self):
@@ -180,13 +180,13 @@ class test_ir_sequence_generate(unittest2.TestCase):
         d = dict(code='test_sequence_type_6', name='Test sequence', implementation='no_gap')
         c = registry('ir.sequence').create(cr, ADMIN_USER_ID, d, {})
         assert c
-        cr.commit()
+        cr.connection.commit()
         cr.close()
 
         cr = cursor()
         f = lambda *a: registry('ir.sequence').next_by_code(cr, ADMIN_USER_ID, 'test_sequence_type_6', {})
         assert all(str(x) == f() for x in xrange(1,10))
-        cr.commit()
+        cr.connection.commit()
         cr.close()
 
     @classmethod

@@ -60,7 +60,8 @@ class Graph(dict):
                    )
 
         ## and we update the default values with values from the database
-        additional_data.update((x['name'], x) for x in cr.dictfetchall())
+        # additional_data.update((x['name'], x) for x in cr.dictfetchall())
+        additional_data.update((x['name'], x) for x in openerp.sql_db.dictfetchall(cr))
 
         for package in self.values():
             for k, v in additional_data[package.name].items():

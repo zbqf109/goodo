@@ -81,7 +81,7 @@ class base_module_upgrade(osv.osv_memory):
                 raise UserError(_('Following modules are not installed or unknown: %s') % ('\n\n' + '\n'.join(unmet_packages)))
 
             ir_module.download(cr, uid, ids, context=context)
-            cr.commit() # save before re-creating cursor below
+            cr.connection.commit() # save before re-creating cursor below
 
         openerp.api.Environment.reset()
         openerp.modules.registry.RegistryManager.new(cr.dbname, update_module=True)

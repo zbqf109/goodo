@@ -89,7 +89,7 @@ class EventMailScheduler(models.Model):
         for scheduler in schedulers:
             scheduler.execute()
             if autocommit:
-                self.env.cr.commit()
+                self.env.cr.connection.commit()
         return True
 
 

@@ -66,7 +66,7 @@ class BusPresence(models.Model):
                 with tools.mute_logger('openerp.sql_db'):
                     presence.write(values)
         # avoid TransactionRollbackError
-        self.env.cr.commit() # TODO : check if still necessary
+        self.env.cr.connection.commit() # TODO : check if still necessary
         # notify if the status has changed
         if send_notification: # TODO : add user_id to the channel tuple to allow using user_watch in controller presence
             self.env['bus.bus'].sendone((self._cr.dbname, 'bus.presence'), {'id': self._uid, 'im_status': values['status']})

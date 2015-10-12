@@ -172,6 +172,7 @@ class Cursor(object):
         self._default_log_exceptions = True
 
         self.cache = {}
+        self.connection = self._cnx
 
     def __build_dict(self, row):
         return {d.name: row[i] for i, d in enumerate(self._obj.description)}

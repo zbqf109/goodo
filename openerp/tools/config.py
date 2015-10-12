@@ -190,6 +190,8 @@ class configmanager(object):
         parser.add_option_group(group)
 
         group = optparse.OptionGroup(parser, "Database related options")
+        group.add_option("--db_drive", dest="db_drive", my_default="postgresql",
+                         help="specify the database backend")
         group.add_option("-d", "--database", dest="db_name", my_default=False,
                          help="specify the database name")
         group.add_option("-r", "--db_user", dest="db_user", my_default=False,
@@ -360,7 +362,7 @@ class configmanager(object):
 
         # if defined dont take the configfile value even if the defined value is None
         keys = ['xmlrpc_interface', 'xmlrpc_port', 'longpolling_port',
-                'db_name', 'db_user', 'db_password', 'db_host',
+                'db_drive', 'db_name', 'db_user', 'db_password', 'db_host',
                 'db_port', 'db_template', 'logfile', 'pidfile', 'smtp_port',
                 'email_from', 'smtp_server', 'smtp_user', 'smtp_password',
                 'db_maxconn', 'import_partial', 'addons_path',

@@ -7,6 +7,8 @@
 from collections import Mapping, defaultdict
 import logging
 import os
+import sys
+import traceback
 import threading
 
 import openerp
@@ -111,7 +113,7 @@ class Registry(Mapping):
             # Query manual fields for all models at once
             self._fields_by_model = dic = defaultdict(dict)
             cr.execute('SELECT * FROM ir_model_fields WHERE state=%s', ('manual',))
-            for field in cr.dictfetchall():
+            for field in openerp.sql_db.dictfetchall(cr):
                 dic[field['model']][field['name']] = field
         return self._fields_by_model[model_name]
 
@@ -169,18 +171,18 @@ class Registry(Mapping):
 
         # prepare the setup on all models
         for model in self.models.itervalues():
-            model._prepare_setup(cr, SUPERUSER_ID)
+            model._prepare_setup(cr, SUPERUSER_ID, context={'dbname': self.db_name})
 
         # do the actual setup from a clean state
         self._m2m = {}
         for model in self.models.itervalues():
-            model._setup_base(cr, SUPERUSER_ID, partial)
+            model._setup_base(cr, SUPERUSER_ID, partial, context={'dbname': self.db_name})
 
         for model in self.models.itervalues():
-            model._setup_fields(cr, SUPERUSER_ID)
+            model._setup_fields(cr, SUPERUSER_ID, context={'dbname': self.db_name})
 
         for model in self.models.itervalues():
-            model._setup_complete(cr, SUPERUSER_ID)
+            model._setup_complete(cr, SUPERUSER_ID, context={'dbname': self.db_name})
 
     def clear_caches(self):
         """ Clear the caches
@@ -359,8 +361,11 @@ class RegistryManager(object):
                         registry.base_registry_signaling_sequence = seq_registry
                         registry.base_cache_signaling_sequence = seq_cache
                     # This should be a method on Registry
-                    openerp.modules.load_modules(registry._db, force_demo, status, update_module)
-                except Exception:
+                    openerp.modules.load_modules(registry._db, force_demo, status, update_module, dbname=registry.db_name)
+                except Exception as e:
+                    _tp, _vl, _tb = sys.exc_info()
+                    traceback.print_exception(_tp, _vl, _tb)
+
                     del cls.registries[db_name]
                     raise
 
@@ -372,7 +377,7 @@ class RegistryManager(object):
                 cr = registry.cursor()
                 try:
                     registry.do_parent_store(cr)
-                    cr.commit()
+                    cr.connection.commit()
                 finally:
                     cr.close()
 

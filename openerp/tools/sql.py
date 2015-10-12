@@ -3,4 +3,4 @@
 
 def drop_view_if_exists(cr, viewname):
     cr.execute("DROP view IF EXISTS %s CASCADE" % (viewname,))
-    cr.commit()
+    cr.connection.commit()

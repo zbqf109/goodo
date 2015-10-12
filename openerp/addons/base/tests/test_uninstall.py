@@ -36,7 +36,7 @@ def install_module(module_name):
         [('name', '=', module_name)], {})
     assert len(module_ids) == 1
     ir_module_module.button_install(cr, SUPERUSER_ID, module_ids, {})
-    cr.commit()
+    cr.connection.commit()
     cr.close()
     reload_registry()
 
@@ -47,7 +47,7 @@ def uninstall_module(module_name):
         [('name', '=', module_name)], {})
     assert len(module_ids) == 1
     ir_module_module.button_uninstall(cr, SUPERUSER_ID, module_ids, {})
-    cr.commit()
+    cr.connection.commit()
     cr.close()
     reload_registry()
 

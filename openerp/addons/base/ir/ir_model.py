@@ -147,7 +147,7 @@ class ir_model(osv.osv):
         if not context.get(MODULE_UNINSTALL_FLAG):
             # only reload pool for normal unlink. For module uninstall the
             # reload is done independently in openerp.modules.loading
-            cr.commit() # must be committed before reloading registry in new cursor
+            cr.connection.commit() # must be committed before reloading registry in new cursor
             api.Environment.reset()
             RegistryManager.new(cr.dbname)
             RegistryManager.signal_registry_change(cr.dbname)
@@ -427,7 +427,7 @@ class ir_model_fields(osv.osv):
         if not context.get(MODULE_UNINSTALL_FLAG):
             # The field we just deleted might be inherited, and the registry is
             # inconsistent in this case; therefore we reload the registry.
-            cr.commit()
+            cr.connection.commit()
             api.Environment.reset()
             RegistryManager.new(cr.dbname)
             RegistryManager.signal_registry_change(cr.dbname)
@@ -683,7 +683,7 @@ class ir_model_relation(Model):
             cr.execute('DROP TABLE %s CASCADE'% table,)
             _logger.info('Dropped table %s', table)
 
-        cr.commit()
+        cr.connection.commit()
 
 class ir_model_access(osv.osv):
     _name = 'ir.model.access'
@@ -1254,7 +1254,7 @@ class ir_model_data(osv.osv):
         unlink_if_refcount((model, res_id) for model, res_id in to_unlink
                                 if model == 'ir.model')
 
-        cr.commit()
+        cr.connection.commit()
 
         self.unlink(cr, uid, ids, context)
 

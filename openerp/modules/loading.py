@@ -29,7 +29,7 @@ _logger = logging.getLogger(__name__)
 _test_logger = logging.getLogger('openerp.tests')
 
 
-def load_module_graph(cr, graph, status=None, perform_checks=True, skip_modules=None, report=None):
+def load_module_graph(cr, graph, status=None, perform_checks=True, skip_modules=None, report=None, dbname=''):
     """Migrates+Updates or Installs all module nodes from ``graph``
        :param graph: graph of module nodes to load
        :param status: deprecated parameter, unused, left to avoid changing signature in 8.0
@@ -39,7 +39,7 @@ def load_module_graph(cr, graph, status=None, perform_checks=True, skip_modules=
        :return: list of modules that were installed or updated
     """
     def load_test(module_name, idref, mode):
-        cr.commit()
+        cr.connection.commit()
         try:
             _load_data(cr, module_name, idref, mode, 'test')
             return True
@@ -49,7 +49,7 @@ def load_module_graph(cr, graph, status=None, perform_checks=True, skip_modules=
             return False
         finally:
             if tools.config.options['test_commit']:
-                cr.commit()
+                cr.connection.commit()
             else:
                 cr.rollback()
                 # avoid keeping stale xml_id, etc. in cache 
@@ -102,7 +102,7 @@ def load_module_graph(cr, graph, status=None, perform_checks=True, skip_modules=
 
     processed_modules = []
     loaded_modules = []
-    registry = openerp.registry(cr.dbname)
+    registry = openerp.registry(dbname)
     migrations = openerp.modules.migration.MigrationManager(cr, graph)
     _logger.info('loading %d modules...', len(graph))
 
@@ -197,13 +197,13 @@ def load_module_graph(cr, graph, status=None, perform_checks=True, skip_modules=
                     delattr(package, kind)
 
         registry._init_modules.add(package.name)
-        cr.commit()
+        cr.connection.commit()
 
     _logger.log(25, "%s modules loaded in %.2fs, %s queries", len(graph), time.time() - t0, openerp.sql_db.sql_counter - t0_sql)
 
     registry.clear_manual_fields()
 
-    cr.commit()
+    cr.connection.commit()
 
     return loaded_modules, processed_modules
 
@@ -221,7 +221,7 @@ def _check_module_names(cr, module_names):
             incorrect_names = mod_names.difference([x['name'] for x in cr.dictfetchall()])
             _logger.warning('invalid module names, ignored: %s', ", ".join(incorrect_names))
 
-def load_marked_modules(cr, graph, states, force, progressdict, report, loaded_modules, perform_checks):
+def load_marked_modules(cr, graph, states, force, progressdict, report, loaded_modules, perform_checks, dbname=''):
     """Loads modules marked with ``states``, adding them to ``graph`` and
        ``loaded_modules`` and returns a list of installed/upgraded modules."""
     processed_modules = []
@@ -232,14 +232,17 @@ def load_marked_modules(cr, graph, states, force, progressdict, report, loaded_m
             break
         graph.add_modules(cr, module_list, force)
         _logger.debug('Updating graph with %d more modules', len(module_list))
-        loaded, processed = load_module_graph(cr, graph, progressdict, report=report, skip_modules=loaded_modules, perform_checks=perform_checks)
+        loaded, processed = load_module_graph(cr, graph, progressdict, report=report,
+                                              skip_modules=loaded_modules,
+                                              perform_checks=perform_checks,
+                                              dbname=dbname)
         processed_modules.extend(processed)
         loaded_modules.extend(loaded)
         if not processed:
             break
     return processed_modules
 
-def load_modules(db, force_demo=False, status=None, update_module=False):
+def load_modules(db, force_demo=False, status=None, update_module=False, dbname=''):
     initialize_sys_path()
 
     force = []
@@ -259,7 +262,7 @@ def load_modules(db, force_demo=False, status=None, update_module=False):
 
         # This is a brand new registry, just created in
         # openerp.modules.registry.RegistryManager.new().
-        registry = openerp.registry(cr.dbname)
+        registry = openerp.registry(dbname)
 
         if 'base' in tools.config['update'] or 'all' in tools.config['update']:
             cr.execute("update ir_module_module set state=%s where name=%s and state=%s", ('to upgrade', 'base', 'installed'))
@@ -274,7 +277,10 @@ def load_modules(db, force_demo=False, status=None, update_module=False):
         # processed_modules: for cleanup step after install
         # loaded_modules: to avoid double loading
         report = registry._assertion_report
-        loaded_modules, processed_modules = load_module_graph(cr, graph, status, perform_checks=update_module, report=report)
+        loaded_modules, processed_modules = load_module_graph(cr, graph, status,
+                                                              perform_checks=update_module,
+                                                              report=report,
+                                                              dbname=dbname)
 
         if tools.config['load_language'] or update_module:
             # some base models are used below, so make sure they are set up
@@ -328,11 +334,11 @@ def load_modules(db, force_demo=False, status=None, update_module=False):
             previously_processed = len(processed_modules)
             processed_modules += load_marked_modules(cr, graph,
                 ['installed', 'to upgrade', 'to remove'],
-                force, status, report, loaded_modules, update_module)
+                force, status, report, loaded_modules, update_module, dbname)
             if update_module:
                 processed_modules += load_marked_modules(cr, graph,
                     ['to install'], force, status, report,
-                    loaded_modules, update_module)
+                    loaded_modules, update_module, dbname)
 
         registry.setup_models(cr)
 
@@ -364,7 +370,7 @@ def load_modules(db, force_demo=False, status=None, update_module=False):
         for kind in ('init', 'demo', 'update'):
             tools.config[kind] = {}
 
-        cr.commit()
+        cr.connection.commit()
 
         # STEP 5: Uninstall modules to remove
         if update_module:
@@ -383,7 +389,7 @@ def load_modules(db, force_demo=False, status=None, update_module=False):
                 registry['ir.module.module'].module_uninstall(cr, SUPERUSER_ID, modules_to_remove.values())
                 # Recursive reload, should only happen once, because there should be no
                 # modules to remove next time
-                cr.commit()
+                cr.connection.commit()
                 _logger.info('Reloading registry once more after uninstalling modules')
                 openerp.api.Environment.reset()
                 return openerp.modules.registry.RegistryManager.new(cr.dbname, force_demo, status, update_module)
@@ -408,7 +414,7 @@ def load_modules(db, force_demo=False, status=None, update_module=False):
             model._register_hook(cr)
 
         # STEP 9: Run the post-install tests
-        cr.commit()
+        cr.connection.commit()
 
         t0 = time.time()
         t0_sql = openerp.sql_db.sql_counter

@@ -449,7 +449,10 @@ class res_users(osv.osv):
             # (In this way, there is no opportunity to have two transactions
             # interleaving their cr.execute()..cr.commit() calls and have one
             # of them rolled back due to a concurrent access.)
-            cr.autocommit(True)
+            try:
+                cr.autocommit(True)
+            except AttributeError:
+                cr.connection.set_isolation_level(0)
             # check if user exists
             res = self.search(cr, SUPERUSER_ID, [('login','=',login)])
             if res:
@@ -503,7 +506,7 @@ class res_users(osv.osv):
                     ICP = self.pool['ir.config_parameter']
                     if not ICP.get_param(cr, uid, 'web.base.url.freeze'):
                         ICP.set_param(cr, uid, 'web.base.url', base)
-                    cr.commit()
+                    cr.connection.commit()
                 except Exception:
                     _logger.exception("Failed to update web.base.url configuration parameter")
                 finally:

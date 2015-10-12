@@ -1010,7 +1010,7 @@ class BaseModel(object):
                         pickle.dump(data, partial_import)
                     if context.get('defer_parent_store_computation'):
                         self._parent_store_compute(cr)
-                    cr.commit()
+                    cr.connection.commit()
         except Exception, e:
             cr.rollback()
             return -1, {}, 'Line %d : %s' % (position + 1, tools.ustr(e)), ''
@@ -2398,7 +2398,7 @@ class BaseModel(object):
                 self._table, column_name, ss[0], column_name)
             cr.execute(query, (db_default,))
             # this is a disgrace
-            cr.commit()
+            cr.connection.commit()
 
     def _auto_init(self, cr, context=None):
         """
@@ -2446,7 +2446,7 @@ class BaseModel(object):
                 cr.execute('SELECT 1 FROM "%s" LIMIT 1' % self._table)
                 has_rows = cr.rowcount
 
-            cr.commit()
+            cr.connection.commit()
             if self._parent_store:
                 if not self._parent_columns_exist(cr):
                     self._create_parent_columns(cr)
@@ -2498,7 +2498,7 @@ class BaseModel(object):
                             _logger.info('column %s (%s) converted to a function, removed from table %s',
                                          k, f.string, self._table)
                             cr.execute('ALTER TABLE "%s" DROP COLUMN "%s" CASCADE' % (self._table, k))
-                            cr.commit()
+                            cr.connection.commit()
                             _schema.debug("Table '%s': dropped column '%s' with cascade",
                                 self._table, k)
                             f_obj_type = None
@@ -2528,7 +2528,7 @@ class BaseModel(object):
                                     cr.execute('ALTER TABLE "%s" ADD COLUMN "%s" %s' % (self._table, k, pg_varchar(f.size)))
                                     cr.execute('UPDATE "%s" SET "%s"=temp_change_size::%s' % (self._table, k, pg_varchar(f.size)))
                                     cr.execute('ALTER TABLE "%s" DROP COLUMN temp_change_size CASCADE' % (self._table,))
-                                cr.commit()
+                                cr.connection.commit()
                                 _schema.debug("Table '%s': column '%s' (type varchar) changed size from %s to %s",
                                     self._table, k, f_pg_size or 'unlimited', f.size or 'unlimited')
                             for c in casts:
@@ -2544,7 +2544,7 @@ class BaseModel(object):
                                             cr.execute('ALTER TABLE "%s" ADD COLUMN "%s" %s' % (self._table, k, c[2]))
                                             cr.execute('UPDATE "%s" SET "%s"= __temp_type_cast%s' % (self._table, k, c[3]))
                                             cr.execute('ALTER TABLE "%s" DROP COLUMN  __temp_type_cast CASCADE' % (self._table,))
-                                        cr.commit()
+                                        cr.connection.commit()
                                         _schema.debug("Table '%s': column '%s' changed type from %s to %s",
                                             self._table, k, c[0], c[1])
                                     break
@@ -2576,7 +2576,7 @@ class BaseModel(object):
                                 # add the NOT NULL constraint
                                 try:
                                     cr.execute('ALTER TABLE "%s" ALTER COLUMN "%s" SET NOT NULL' % (self._table, k), log_exceptions=False)
-                                    cr.commit()
+                                    cr.connection.commit()
                                     _schema.debug("Table '%s': column '%s': added NOT NULL constraint",
                                         self._table, k)
                                 except Exception:
@@ -2584,10 +2584,10 @@ class BaseModel(object):
                                         "If you want to have it, you should update the records and execute manually:\n"\
                                         "ALTER TABLE %s ALTER COLUMN %s SET NOT NULL"
                                     _schema.warning(msg, self._table, k, self._table, k)
-                                cr.commit()
+                                cr.connection.commit()
                             elif not f.required and f_pg_notnull == 1:
                                 cr.execute('ALTER TABLE "%s" ALTER COLUMN "%s" DROP NOT NULL' % (self._table, k))
-                                cr.commit()
+                                cr.connection.commit()
                                 _schema.debug("Table '%s': column '%s': dropped NOT NULL constraint",
                                     self._table, k)
                             # Verify index
@@ -2596,7 +2596,7 @@ class BaseModel(object):
                             res2 = cr.dictfetchall()
                             if not res2 and f.select:
                                 cr.execute('CREATE INDEX "%s_%s_index" ON "%s" ("%s")' % (self._table, k, self._table, k))
-                                cr.commit()
+                                cr.connection.commit()
                                 if f._type == 'text':
                                     # FIXME: for fields.text columns we should try creating GIN indexes instead (seems most suitable for an ERP context)
                                     msg = "Table '%s': Adding (b-tree) index for %s column '%s'."\
@@ -2606,7 +2606,7 @@ class BaseModel(object):
                                     _schema.warning(msg, self._table, f._type, k)
                             if res2 and not f.select:
                                 cr.execute('DROP INDEX "%s_%s_index"' % (self._table, k))
-                                cr.commit()
+                                cr.connection.commit()
                                 msg = "Table '%s': dropping index for column '%s' of type '%s' as it is not required anymore"
                                 _schema.debug(msg, self._table, k, f._type)
 
@@ -2652,7 +2652,7 @@ class BaseModel(object):
                                 cr.execute('CREATE INDEX "%s_%s_index" ON "%s" ("%s")' % (self._table, k, self._table, k))
                             if f.required:
                                 try:
-                                    cr.commit()
+                                    cr.connection.commit()
                                     cr.execute('ALTER TABLE "%s" ALTER COLUMN "%s" SET NOT NULL' % (self._table, k))
                                     _schema.debug("Table '%s': column '%s': added a NOT NULL constraint",
                                         self._table, k)
@@ -2662,13 +2662,13 @@ class BaseModel(object):
                                         "If it doesn't work, update records and execute manually:\n"\
                                         "ALTER TABLE %s ALTER COLUMN %s SET NOT NULL"
                                     _logger.warning(msg, k, self._table, self._table, k, exc_info=True)
-                            cr.commit()
+                            cr.connection.commit()
 
         else:
             cr.execute("SELECT relname FROM pg_class WHERE relkind IN ('r','v') AND relname=%s", (self._table,))
             create = not bool(cr.fetchone())
 
-        cr.commit()     # start a new transaction
+        cr.connection.commit()     # start a new transaction
 
         if self._auto:
             self._add_sql_constraints(cr)
@@ -2678,7 +2678,7 @@ class BaseModel(object):
 
         if store_compute:
             self._parent_store_compute(cr)
-            cr.commit()
+            cr.connection.commit()
 
         if stored_fields:
             # trigger computation of new-style stored fields with a compute
@@ -2700,7 +2700,7 @@ class BaseModel(object):
         for t, k, r, d in self._foreign_keys:
             cr.execute('ALTER TABLE "%s" ADD FOREIGN KEY ("%s") REFERENCES "%s" ON DELETE %s' % (t, k, r, d))
             self._save_constraint(cr, "%s_%s_fkey" % (t, k), 'f', False)
-        cr.commit()
+        cr.connection.commit()
         del self._foreign_keys
 
 
@@ -2746,7 +2746,7 @@ class BaseModel(object):
             _logger.error("The column %s on object %s must be set as ondelete='cascade' or 'restrict'",
                           self._parent_name, self._name)
 
-        cr.commit()
+        cr.connection.commit()
 
 
     def _select_column_data(self, cr):
@@ -2798,7 +2798,7 @@ class BaseModel(object):
             cr.execute('CREATE INDEX ON "%s" ("%s")' % (m2m_tbl, col1))
             cr.execute('CREATE INDEX ON "%s" ("%s")' % (m2m_tbl, col2))
             cr.execute("COMMENT ON TABLE \"%s\" IS 'RELATION BETWEEN %s AND %s'" % (m2m_tbl, self._table, ref))
-            cr.commit()
+            cr.connection.commit()
             _schema.debug("Create table '%s': m2m relation between '%s' and '%s'", m2m_tbl, self._table, ref)
             return True
 
@@ -2861,7 +2861,7 @@ class BaseModel(object):
             for sql_action in [action for action in sql_actions if action['execute']]:
                 try:
                     cr.execute(sql_action['query'])
-                    cr.commit()
+                    cr.connection.commit()
                     _schema.debug(sql_action['msg_ok'])
                 except:
                     _schema.warning(sql_action['msg_err'])
@@ -2875,7 +2875,7 @@ class BaseModel(object):
                 line2 = line.replace('\n', '').strip()
                 if line2:
                     cr.execute(line2)
-                    cr.commit()
+                    cr.connection.commit()
 
     #
     # Update objects that uses this one to update their _inherits fields

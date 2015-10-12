@@ -98,11 +98,11 @@ class AuthSignupHome(openerp.addons.web.controllers.main.Home):
         assert values.get('password') == qcontext.get('confirm_password'), "Passwords do not match; please retype them."
         values['lang'] = request.lang
         self._signup_with_values(qcontext.get('token'), values)
-        request.cr.commit()
+        request.cr.connection.commit()
 
     def _signup_with_values(self, token, values):
         db, login, password = request.registry['res.users'].signup(request.cr, openerp.SUPERUSER_ID, values, token)
-        request.cr.commit()     # as authenticate will use its own cursor we need to commit the current transaction
+        request.cr.connection.commit()     # as authenticate will use its own cursor we need to commit the current transaction
         uid = request.session.authenticate(db, login, password)
         if not uid:
             raise SignupError(_('Authentication Failed.'))

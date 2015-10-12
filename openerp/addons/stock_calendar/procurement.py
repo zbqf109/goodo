@@ -312,7 +312,7 @@ class procurement_order(osv.osv):
                                     tot_procs.append(proc_id)
                                     orderpoint_obj.write(cr, uid, [op.id], {'last_execution_date': datetime.utcnow().strftime(DEFAULT_SERVER_DATETIME_FORMAT)}, context=context)
                                 if use_new_cursor:
-                                    cr.commit()
+                                    cr.connection.commit()
                         except OperationalError:
                             if use_new_cursor:
                                 orderpoint_ids.append(op.id)
@@ -325,7 +325,7 @@ class procurement_order(osv.osv):
                 self.run(cr, uid, tot_procs, context=context)
                 tot_procs = []
                 if use_new_cursor:
-                    cr.commit()
+                    cr.connection.commit()
             except OperationalError:
                 if use_new_cursor:
                     cr.rollback()
@@ -334,13 +334,13 @@ class procurement_order(osv.osv):
                     raise
 
             if use_new_cursor:
-                cr.commit()
+                cr.connection.commit()
             if prev_ids == ids:
                 break
             else:
                 prev_ids = ids
 
         if use_new_cursor:
-            cr.commit()
+            cr.connection.commit()
             cr.close()
         return {}

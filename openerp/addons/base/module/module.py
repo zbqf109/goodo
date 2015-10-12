@@ -527,7 +527,7 @@ class module(osv.osv):
     def _button_immediate_function(self, cr, uid, ids, function, context=None):
         function(cr, uid, ids, context=context)
 
-        cr.commit()
+        cr.connection.commit()
         api.Environment.reset()
         registry = openerp.modules.registry.RegistryManager.new(cr.dbname, update_module=True)
 
@@ -756,7 +756,7 @@ class module(osv.osv):
 
             if already_installed:
                 # in this case, force server restart to reload python code...
-                cr.commit()
+                cr.connection.commit()
                 openerp.service.server.restart()
                 return {
                     'type': 'ir.actions.client',

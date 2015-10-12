@@ -141,7 +141,7 @@ class OAuthController(http.Controller):
             try:
                 u = registry.get('res.users')
                 credentials = u.auth_oauth(cr, SUPERUSER_ID, provider, kw, context=context)
-                cr.commit()
+                cr.connection.commit()
                 action = state.get('a')
                 menu = state.get('m')
                 redirect = werkzeug.url_unquote_plus(state['r']) if state.get('r') else False

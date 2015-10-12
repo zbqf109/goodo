@@ -24,6 +24,7 @@ import traceback
 import urlparse
 import warnings
 from zlib import adler32
+import urllib
 
 import babel.core
 import psycopg2
@@ -138,19 +139,18 @@ def dispatch_rpc(service_name, method, params):
         openerp.tools.debugger.post_mortem(openerp.tools.config, sys.exc_info())
         raise
 
+def redirect(path, code):
+    pass
+
 def local_redirect(path, query=None, keep_hash=False, forward_debug=True, code=303):
     subroot = openerp.tools.config.get('subroot')
-    if subroot:
-        url  = '{}{}'.format(subroot, path)
-    else:
-        url = path
-    print 'redirect to %s' % url
+    url = subroot + path
     if not query:
         query = {}
     if forward_debug and request and request.debug:
         query['debug'] = None
     if query:
-        url += '?' + werkzeug.url_encode(query)
+        url += '?' + urllib.urlencode(query)
     if keep_hash:
         return redirect_with_hash(url, code)
     else:

@@ -695,7 +695,13 @@ class Environment(object):
         # otherwise create environment, and add it in the set
         self = object.__new__(cls)
         self.cr, self.uid, self.context = self.args = (cr, uid, frozendict(context))
-        self.registry = RegistryManager.get(cr.dbname)
+        try:
+            dbname = context.get('dbname')
+        except Exception as e:
+            # TODO split `dbname` from `cr.connection.dsn`
+            print e.message
+            raise
+        self.registry = RegistryManager.get(dbname)
         self.cache = defaultdict(dict)      # {field: {id: value, ...}, ...}
         self.prefetch = defaultdict(set)    # {model_name: set(id), ...}
         self.computed = defaultdict(set)    # {field: set(id), ...}

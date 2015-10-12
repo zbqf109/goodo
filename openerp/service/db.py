@@ -44,7 +44,7 @@ def _initialize_db(id, db_name, demo, lang, user_password):
             # TODO this should be removed as it is done by RegistryManager.new().
             openerp.modules.db.initialize(cr)
             openerp.tools.config['lang'] = lang
-            cr.commit()
+            cr.connection.commit()
 
         registry = openerp.modules.registry.RegistryManager.new(
             db_name, demo, None, update_module=True)
@@ -60,7 +60,7 @@ def _initialize_db(id, db_name, demo, lang, user_password):
             registry['res.users'].write(cr, SUPERUSER_ID, [SUPERUSER_ID], values)
 
             cr.execute('SELECT login, password FROM res_users ORDER BY login')
-            cr.commit()
+            cr.connection.commit()
     except Exception, e:
         _logger.exception('CREATE DATABASE failed:')
 

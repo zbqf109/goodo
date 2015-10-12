@@ -105,7 +105,7 @@ class config(osv.Model):
             attach_vals = {'res_model': res_model, 'name': name_gdocs, 'res_id': res_id, 'type': 'url', 'url': content['alternateLink']}
             res['id'] = attach_pool.create(cr, uid, attach_vals)
             # Commit in order to attach the document to the current object instance, even if the permissions has not been written.
-            cr.commit()
+            cr.connection.commit()
             res['url'] = content['alternateLink']
             key = self._get_key_from_url(res['url'])
             request_url = "https://www.googleapis.com/drive/v2/files/%s/permissions?emailMessage=This+is+a+drive+file+created+by+Odoo&sendNotificationEmails=false&access_token=%s" % (key, access_token)

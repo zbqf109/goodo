@@ -341,7 +341,7 @@ class base_action_rule(osv.osv):
         """ Update the registry after a modification on action rules. """
         if self.pool.ready:
             # for the sake of simplicity, simply force the registry to reload
-            cr.commit()
+            cr.connection.commit()
             openerp.api.Environment.reset()
             RegistryManager.new(cr.dbname)
             RegistryManager.signal_registry_change(cr.dbname)
@@ -440,4 +440,4 @@ class base_action_rule(osv.osv):
 
             if automatic:
                 # auto-commit for batch processing
-                cr.commit()
+                cr.connection.commit()

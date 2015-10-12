@@ -710,7 +710,7 @@ form: module.record_id""" % (xml_id,)
         if rec_id:
             self.idref[rec_id] = int(id)
         if config.get('import_partial'):
-            cr.commit()
+            cr.connection.commit()
         return rec_model, id
 
     def _tag_template(self, cr, el, data_node=None, mode=None):
@@ -916,7 +916,7 @@ def convert_csv_import(cr, module, fname, csvcontent, idref=None, mode='init',
         data = pickle.load(file(config.get('import_partial')))
         data[fname_partial] = 0
         pickle.dump(data, file(config.get('import_partial'),'wb'))
-        cr.commit()
+        cr.connection.commit()
 
 def convert_xml_import(cr, module, xmlfile, idref=None, mode='init', noupdate=False, report=None):
     doc = etree.parse(xmlfile)

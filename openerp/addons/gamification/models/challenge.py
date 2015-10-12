@@ -730,7 +730,7 @@ class gamification_challenge(osv.Model):
                         self.reward_user(cr, uid, user_id, challenge.reward_id.id, challenge.id, context=context)
                         rewarded_users.append(user_id)
                         if commit:
-                            cr.commit()
+                            cr.connection.commit()
 
             if challenge_ended:
                 # open chatter message
@@ -764,7 +764,7 @@ class gamification_challenge(osv.Model):
                     body=message_body,
                     context=context)
                 if commit:
-                    cr.commit()
+                    cr.connection.commit()
 
         return True
 

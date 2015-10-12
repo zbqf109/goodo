@@ -615,7 +615,7 @@ class google_calendar(osv.AbstractModel):
                     ev_obj.write(cr, uid, att.event_id.id, {'oe_update_date': update_date})
                     new_ids.append(response['id'])
                     att_obj.write(cr, uid, [att.id for att in att.event_id.attendee_ids], {'google_internal_event_id': response['id'], 'oe_synchro_date': update_date})
-                    cr.commit()
+                    cr.connection.commit()
                 else:
                     _logger.warning("Impossible to create event %s. [%s] Enable DEBUG for response detail.", att.event_id.id, st)
                     _logger.debug("Response : %s" % response)
@@ -661,7 +661,7 @@ class google_calendar(osv.AbstractModel):
                         if status_response(st):
                             att_obj.write(cr, uid, [att.id], {'google_internal_event_id': new_google_internal_event_id}, context=context)
                             new_ids.append(new_google_internal_event_id)
-                            cr.commit()
+                            cr.connection.commit()
                         else:
                             _logger.warning("Impossible to create event %s. [%s]" % (att.event_id.id, st))
                             _logger.debug("Response : %s" % response)
@@ -795,7 +795,7 @@ class google_calendar(osv.AbstractModel):
         for base_event in event_to_synchronize:
             event_to_synchronize[base_event] = sorted(event_to_synchronize[base_event].iteritems(), key=operator.itemgetter(0))
             for current_event in event_to_synchronize[base_event]:
-                cr.commit()
+                cr.connection.commit()
                 event = current_event[1]  # event is an Sync Event !
                 actToDo = event.OP
                 actSrc = event.OP.src

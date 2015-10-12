@@ -31,7 +31,7 @@ def initialize(cr):
     base_sql_file = openerp.tools.misc.file_open(f)
     try:
         cr.execute(base_sql_file.read())
-        cr.commit()
+        cr.connection.commit()
     finally:
         base_sql_file.close()
 
@@ -85,7 +85,7 @@ def initialize(cr):
         if not to_auto_install: break
         cr.execute("""UPDATE ir_module_module SET state='to install' WHERE name in %s""", (tuple(to_auto_install),))
 
-    cr.commit()
+    cr.connection.commit()
 
 def create_categories(cr, categories):
     """ Create the ir_module_category entries for some categories.

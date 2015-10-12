@@ -389,7 +389,7 @@ class gamification_goal(osv.Model):
                     continue
                 self.write(cr, uid, [goal_id], value, context=context)
             if commit:
-                cr.commit()
+                cr.connection.commit()
         return True
 
     def action_start(self, cr, uid, ids, context=None):

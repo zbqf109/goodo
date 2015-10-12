@@ -295,14 +295,14 @@ def init_module_models(cr, module_name, obj_list):
             todo += result
         if hasattr(obj, 'init'):
             obj.init(cr)
-        cr.commit()
+        cr.connection.commit()
     for obj in obj_list:
         obj._auto_end(cr, {'module': module_name})
-        cr.commit()
+        cr.connection.commit()
     todo.sort(key=lambda x: x[0])
     for t in todo:
         t[1](cr, *t[2])
-    cr.commit()
+    cr.connection.commit()
 
 def load_openerp_module(module_name):
     """ Load an OpenERP module, if not already loaded.
